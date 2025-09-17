@@ -1,1 +1,863 @@
-1
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🖐️ 인터랙티브 손금 분석</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .upload-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .upload-zone {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-zone:hover {
+            border-color: #764ba2;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .upload-zone.dragover {
+            border-color: #764ba2;
+            background: rgba(118, 75, 162, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .upload-hint {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .hand-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .hand-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .hand-option:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+        
+        .hand-option input[type="radio"] {
+            margin: 0;
+        }
+        
+        .preview-section {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .preview-section.show {
+            display: block;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            margin: 20px 0;
+        }
+        
+        .analyze-btn {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            color: white;
+            font-size: 1.2rem;
+            padding: 15px 40px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .analyze-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+        }
+        
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1rem;
+            min-height: 24px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .scores-section {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .scores-section.show {
+            display: block;
+        }
+        
+        .scores-title {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .score-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .score-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .score-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .score-label {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .score-desc {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            opacity: 0.9;
+            text-align: left;
+        }
+        
+        .palm-selector {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .palm-selector.show {
+            display: block;
+        }
+        
+        .selector-title {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .palm-sections {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .section-group {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+        }
+        
+        .section-group h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        
+        .palm-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        .palm-btn {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 15px 20px;
+            color: #667eea;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .palm-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .palm-btn.selected {
+            background: #667eea;
+            color: white;
+        }
+        
+        .analysis-result {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+        
+        .analysis-result.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .result-title {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .typing-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #444;
+            min-height: 200px;
+        }
+        
+        .cursor {
+            display: inline-block;
+            background: #667eea;
+            width: 2px;
+            height: 1.2em;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .back-btn {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .tips {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .tips h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .upload-section, .palm-selector, .analysis-result, .scores-section {
+                padding: 20px;
+            }
+            
+            .upload-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .palm-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .score-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .score-desc {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖐️ 인터랙티브 손금 분석</h1>
+            <p>실제 AI가 분석하는 12개 부위 개별 손금 해석</p>
+        </div>
+
+        <div class="upload-section">
+            <h2>📷 손바닥 사진 업로드</h2>
+            
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">📤</div>
+                <div class="upload-text">여기에 손바닥 사진을 드래그하거나 클릭하여 업로드</div>
+                <div class="upload-hint">JPG, PNG 파일 지원 • 최대 10MB</div>
+            </div>
+            
+            <input type="file" id="fileInput" class="file-input" accept="image/*" multiple="false">
+            
+            <div class="upload-buttons">
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                    📁 파일 선택
+                </button>
+                <button class="btn btn-secondary" onclick="document.getElementById('cameraInput').click()">
+                    📷 카메라 촬영
+                </button>
+            </div>
+            
+            <input type="file" id="cameraInput" class="file-input" accept="image/*" capture="environment">
+            
+            <div class="hand-selector">
+                <label class="hand-option">
+                    <input type="radio" name="hand" value="오른손" checked>
+                    <span>🤚 오른손</span>
+                </label>
+                <label class="hand-option">
+                    <input type="radio" name="hand" value="왼손">
+                    <span>✋ 왼손</span>
+                </label>
+            </div>
+
+            <div class="tips">
+                <h4>📋 최적의 촬영 가이드</h4>
+                <p>• 손바닥을 완전히 펴서 촬영해주세요<br>
+                • 자연광 또는 밝은 조명을 사용하세요<br>
+                • 손금이 선명하게 보이도록 초점을 맞춰주세요<br>
+                • 그림자나 반사광을 피해주세요</p>
+            </div>
+        </div>
+
+        <div class="preview-section" id="previewSection">
+            <h3>📸 업로드된 이미지</h3>
+            <img id="previewImage" class="preview-image" alt="미리보기">
+            <br>
+            <button class="analyze-btn" id="analyzeBtn">✨ 손금 분석 시작</button>
+            <div class="status" id="status"></div>
+        </div>
+
+        <div class="scores-section" id="scoresSection">
+            <div class="scores-title">📊 종합 운세 점수</div>
+            <div class="score-grid" id="scoreGrid">
+                <!-- 점수가 여기에 동적으로 추가됩니다 -->
+            </div>
+        </div>
+
+        <div class="palm-selector" id="palmSelector">
+            <div class="selector-title">
+                🖐️ 분석하고 싶은 부위를 선택해주세요
+            </div>
+            
+            <div class="palm-sections">
+                <div class="section-group">
+                    <h3>✨ 8개 선형 부위 (상세 분석)</h3>
+                    <div class="palm-buttons" id="linesButtons">
+                        <button class="palm-btn" data-type="line" data-name="감정선">💕 감정선</button>
+                        <button class="palm-btn" data-type="line" data-name="지능선">🧠 지능선</button>
+                        <button class="palm-btn" data-type="line" data-name="생명선">💪 생명선</button>
+                        <button class="palm-btn" data-type="line" data-name="운명선">⭐ 운명선</button>
+                        <button class="palm-btn" data-type="line" data-name="태양선">☀️ 태양선</button>
+                        <button class="palm-btn" data-type="line" data-name="금성띠">💫 금성띠</button>
+                        <button class="palm-btn" data-type="line" data-name="결혼선">💒 결혼선</button>
+                        <button class="palm-btn" data-type="line" data-name="운세선">🌊 운세선</button>
+                    </div>
+                </div>
+                
+                <div class="section-group">
+                    <h3>⛰️ 4개 언덕 부위 (간단 분석)</h3>
+                    <div class="palm-buttons" id="mountsButtons">
+                        <button class="palm-btn" data-type="mount" data-name="목성언덕">🏔️ 목성언덕</button>
+                        <button class="palm-btn" data-type="mount" data-name="토성언덕">🗻 토성언덕</button>
+                        <button class="palm-btn" data-type="mount" data-name="태양언덕">🌅 태양언덕</button>
+                        <button class="palm-btn" data-type="mount" data-name="수성언덕">💎 수성언덕</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-result" id="analysisResult">
+            <div class="result-title" id="resultTitle"></div>
+            <div class="typing-text" id="typingText"></div>
+            <button class="back-btn" id="backBtn">↩️ 다른 부위 선택하기</button>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let uploadedFile = null;
+        let currentHand = '오른손';
+        let typingInterval = null;
+        let currentScores = null;
+
+        // API 베이스 URL
+        const API_BASE = window.location.origin;
+
+        // DOM 요소들
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const cameraInput = document.getElementById('cameraInput');
+        const previewSection = document.getElementById('previewSection');
+        const previewImage = document.getElementById('previewImage');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const status = document.getElementById('status');
+        const scoresSection = document.getElementById('scoresSection');
+        const scoreGrid = document.getElementById('scoreGrid');
+        const palmSelector = document.getElementById('palmSelector');
+        const analysisResult = document.getElementById('analysisResult');
+        const resultTitle = document.getElementById('resultTitle');
+        const typingText = document.getElementById('typingText');
+        const backBtn = document.getElementById('backBtn');
+
+        // 파일 업로드 이벤트
+        [fileInput, cameraInput].forEach(input => {
+            input.addEventListener('change', handleFileSelect);
+        });
+
+        // 드래그 앤 드롭
+        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('dragover', handleDragOver);
+        uploadZone.addEventListener('dragleave', handleDragLeave);
+        uploadZone.addEventListener('drop', handleDrop);
+
+        // 분석 버튼
+        analyzeBtn.addEventListener('click', analyzeScores);
+
+        // 뒤로가기 버튼
+        backBtn.addEventListener('click', () => {
+            analysisResult.classList.remove('show');
+            setTimeout(() => {
+                palmSelector.classList.add('show');
+                document.querySelectorAll('.palm-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+            }, 300);
+        });
+
+        // 손 선택 이벤트
+        document.querySelectorAll('input[name="hand"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentHand = e.target.value;
+            });
+        });
+
+        // 손금 부위 선택 이벤트
+        document.querySelectorAll('.palm-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const type = btn.dataset.type;
+                const name = btn.dataset.name;
+                selectPalmPart(type, name, btn);
+            });
+        });
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        }
+
+        function processFile(file) {
+            // 파일 타입 검증
+            if (!file.type.startsWith('image/')) {
+                setStatus('❌ 이미지 파일만 업로드 가능합니다.', 'error');
+                return;
+            }
+
+            // 파일 크기 검증 (10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                setStatus('❌ 파일 크기가 10MB를 초과합니다.', 'error');
+                return;
+            }
+
+            uploadedFile = file;
+            
+            // 미리보기 표시
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewSection.classList.add('show');
+                setStatus('✅ 이미지가 업로드되었습니다. 분석 시작 버튼을 클릭해주세요.', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function setStatus(message, type = '') {
+            status.innerHTML = message;
+            status.className = `status ${type}`;
+        }
+
+        async function analyzeScores() {
+            if (!uploadedFile) {
+                setStatus('❌ 먼저 이미지를 업로드해주세요.', 'error');
+                return;
+            }
+
+            analyzeBtn.disabled = true;
+            setStatus('<span class="loading"></span>AI가 손금을 분석하고 있습니다...', 'loading');
+
+            try {
+                const formData = new FormData();
+                formData.append('file', uploadedFile);
+                formData.append('dominant', currentHand);
+
+                const response = await fetch(`${API_BASE}/analyze_scores`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentScores = data.scores;
+                    displayScores(data.scores, data.dominant_hand);
+                    setStatus('✨ 분석 완료! 궁금한 부위를 선택해주세요.', 'success');
+                    
+                    setTimeout(() => {
+                        palmSelector.classList.add('show');
+                        palmSelector.scrollIntoView({ behavior: 'smooth' });
+                    }, 1000);
+                } else {
+                    throw new Error(data.message || '분석 실패');
+                }
+
+            } catch (error) {
+                console.error('분석 오류:', error);
+                setStatus('❌ 분석 중 오류가 발생했습니다. 다시 시도해주세요.', 'error');
+            } finally {
+                analyzeBtn.disabled = false;
+            }
+        }
+
+        function displayScores(scores, handType) {
+            const scoreData = [
+                {
+                    key: 'relationships',
+                    label: '인간관계운',
+                    desc: '감정선과 결혼선에서 나타나는 관계 에너지입니다.<br>사람과의 소통 능력과 깊은 유대감을 형성하는 힘을 의미해요.<br>높을수록 타인과 조화롭고 따뜻한 관계를 맺을 가능성이 커집니다.'
+                },
+                {
+                    key: 'creativity',
+                    label: '창의력',
+                    desc: '지능선과 태양선에서 읽어낸 창의적 사고력입니다.<br>새로운 아이디어를 떠올리고 독창적인 해결책을 찾는 능력을 보여줘요.<br>예술적 재능이나 혁신적인 사고를 통해 특별한 성취를 이룰 수 있습니다.'
+                },
+                {
+                    key: 'health',
+                    label: '건강운',
+                    desc: '생명선과 언덕들에서 나타나는 생명력과 회복력입니다.<br>신체적 건강뿐만 아니라 정신적 활력과 스트레스 저항력을 의미해요.<br>높을수록 에너지가 풍부하고 어려운 상황을 잘 극복할 수 있습니다.'
+                },
+                {
+                    key: 'success',
+                    label: '성공운',
+                    desc: '운명선과 태양선에서 드러나는 목표 달성 가능성입니다.<br>꾸준한 노력을 통해 원하는 결과를 얻고 인정받는 능력을 보여줘요.<br>사회적 성취나 개인적 목표 실현에서 좋은 결과를 기대할 수 있습니다.'
+                }
+            ];
+
+            scoreGrid.innerHTML = scoreData.map(item => `
+                <div class="score-card">
+                    <div class="score-value">${scores[item.key]}</div>
+                    <div class="score-label">${item.label}</div>
+                    <div class="score-desc">${item.desc}</div>
+                </div>
+            `).join('');
+
+            scoresSection.classList.add('show');
+            scoresSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function selectPalmPart(type, name, btnElement) {
+            // 선택 표시
+            document.querySelectorAll('.palm-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            btnElement.classList.add('selected');
+
+            setStatus('<span class="loading"></span>선택된 부위를 분석하고 있습니다...', 'loading');
+
+            try {
+                const formData = new FormData();
+                formData.append('file', uploadedFile);
+                formData.append('dominant', currentHand);
+                formData.append('part_type', type);
+                formData.append('part_name', name);
+
+                const response = await fetch(`${API_BASE}/analyze_part`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    setTimeout(() => {
+                        showAnalysisResult(data);
+                    }, 1000);
+                } else {
+                    throw new Error(data.error || '분석 실패');
+                }
+
+            } catch (error) {
+                console.error('부위 분석 오류:', error);
+                setStatus('❌ 부위 분석 중 오류가 발생했습니다.', 'error');
+                btnElement.classList.remove('selected');
+            }
+        }
+
+        function showAnalysisResult(data) {
+            resultTitle.innerHTML = `${data.icon} ${data.dominant_hand} ${data.title}`;
+            
+            palmSelector.classList.remove('show');
+            analysisResult.classList.add('show');
+            
+            // 타이핑 효과 시작
+            setTimeout(() => {
+                startTypingEffect(data.analysis);
+                analysisResult.scrollIntoView({ behavior: 'smooth' });
+                setStatus('', '');
+            }, 500);
+        }
+
+        function startTypingEffect(text) {
+            typingText.innerHTML = '<span class="cursor"></span>';
+            
+            let index = 0;
+            const speed = 50; // 타이핑 속도 (ms)
+            
+            if (typingInterval) {
+                clearInterval(typingInterval);
+            }
+            
+            typingInterval = setInterval(() => {
+                if (index < text.length) {
+                    const currentText = text.substring(0, index + 1);
+                    typingText.innerHTML = currentText.replace(/\n/g, '<br>') + '<span class="cursor"></span>';
+                    index++;
+                } else {
+                    // 타이핑 완료
+                    typingText.innerHTML = text.replace(/\n/g, '<br>');
+                    clearInterval(typingInterval);
+                }
+            }, speed);
+        }
+    </script>
+</body>
+</html>
