@@ -182,3 +182,8 @@ if __name__ == "__main__":
     print("📱 모바일에서는 http://[내IP]:5000 으로 접속")
     
     app.run(host="0.0.0.0", port=5000, debug=True)
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))  # Render 환경에 맞춰 포트 읽기
+    app.run(host="0.0.0.0", port=port)
+
