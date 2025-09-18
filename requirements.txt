@@ -3,4 +3,5 @@ numpy>=2.0.0
 opencv-python-headless>=4.10.0
 setuptools>=70.0.0
 wheel>=0.43.0
+gunicorn>=22.0.0
 
