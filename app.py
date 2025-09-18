@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import cv2
 import numpy as np
-from analyzer import analyze_image, analyze_palm_part
 
 app = Flask(__name__)
 
@@ -10,10 +9,13 @@ app = Flask(__name__)
 def index():
     return render_template('palm_reading.html')
 
-# 종합 점수 분석 엔드포인트
+# 테스트용 간단한 엔드포인트
 @app.route('/analyze_scores', methods=['POST'])
 def analyze_scores():
     try:
+        # analyzer import 시도
+        from analyzer import analyze_image, analyze_palm_part
+        
         if 'file' not in request.files:
             return jsonify({'success': False, 'message': 'No file uploaded'}), 400
         
@@ -40,6 +42,8 @@ def analyze_scores():
             'features': features
         })
         
+    except ImportError as e:
+        return jsonify({'success': False, 'message': f'Import error: {str(e)}'}), 500
     except Exception as e:
         return jsonify({'success': False, 'message': f'Analysis error: {str(e)}'}), 500
 
@@ -47,6 +51,8 @@ def analyze_scores():
 @app.route('/analyze_part', methods=['POST'])
 def analyze_part():
     try:
+        from analyzer import analyze_palm_part
+        
         if 'file' not in request.files:
             return jsonify({'success': False, 'error': 'No file uploaded'}), 400
         
@@ -73,6 +79,8 @@ def analyze_part():
         
         return jsonify(result)
         
+    except ImportError as e:
+        return jsonify({'success': False, 'error': f'Import error: {str(e)}'}), 500
     except Exception as e:
         return jsonify({'success': False, 'error': f'Analysis error: {str(e)}'}), 500
 
