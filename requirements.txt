@@ -1,9 +1,7 @@
 flask==2.3.3
 numpy==1.24.3
 opencv-python==4.8.1.78
-mediapipe==0.10.21
-protobuf==4.25.8
-sentencepiece==0.2.1
+
 
 
 
